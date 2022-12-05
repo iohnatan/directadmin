@@ -16,7 +16,7 @@ use Omines\DirectAdmin\Objects\Domain;
 use Omines\DirectAdmin\Objects\Users\User;
 
 /**
- * Context for user functions.
+ * Encapsulates a contextual connection to a server for user functions.
  *
  * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */

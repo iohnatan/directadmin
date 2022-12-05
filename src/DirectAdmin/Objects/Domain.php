@@ -56,13 +56,13 @@ class Domain extends BaseObject
     /**
      * Construct the object.
      *
-     * @param string $name The domain name
-     * @param UserContext $context The owning user context
-     * @param string|array $config The basic config string as returned by CMD_API_ADDITIONAL_DOMAINS
+     * @param string       $name    The domain name
+     * @param UserContext  $context The owning user context
+     * @param string|array $config  The basic config string as returned by CMD_API_ADDITIONAL_DOMAINS
      */
     public function __construct($name, UserContext $context, $config)
     {
-        parent::__construct($name, $context);
+        parent::__construct( $name, $context );
         $this->setConfig($context, is_array($config) ? $config : \GuzzleHttp\Psr7\parse_query($config));
     }
 

@@ -32,6 +32,25 @@ class Reseller extends User
     }
 
     /**
+     * Change a user password.
+     * 
+     * @link https://www.directadmin.com/features.php?id=736
+     *
+     * @return array
+     */
+    public function changeUserPassword( string $username, string $password )
+    {
+        return $this->getContext()->invokeApiPost(
+            'USER_PASSWD',
+            [
+                'username' => $username,
+                'passwd'   => $password,
+                'passwd2'  => $password,
+            ]
+        );
+    }
+
+    /**
      * @param string $username
      * @return null|User
      */

@@ -1,0 +1,5 @@
+{
+    "intelephense.environment.includePaths": [
+        "D:\\CloudSync\\0-Dev\\Wordpress\\Plugins-Jona\\wp-iohna-api\\vendor\\guzzlehttp",
+    ],
+}

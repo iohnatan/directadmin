@@ -19,6 +19,9 @@ use Omines\DirectAdmin\Objects\Domain;
 use Omines\DirectAdmin\Objects\BaseObject;
 use Omines\DirectAdmin\Utility\Conversion;
 
+use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\SetCookie;
+
 /**
  * User.
  *
@@ -96,6 +99,14 @@ class User extends BaseObject
     public function getUsername()
     {
         return $this->getName();
+    }
+
+    /**
+     * @return string The current email account, as set by the user. Note that this may differ from the email set in their messaging system.
+     */
+    public function getEmail()
+    {
+        return $this->getConfig('email');
     }
 
     /**
@@ -366,7 +377,7 @@ class User extends BaseObject
      * @param string $item Config item to retrieve
      * @return mixed The value of the config item, or NULL
      */
-    private function getConfig($item)
+    public function getConfig($item)
     {
         return $this->getCacheItem(self::CACHE_CONFIG, $item, function () {
             return $this->loadConfig();

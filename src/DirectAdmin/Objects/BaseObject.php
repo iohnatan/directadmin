@@ -13,6 +13,9 @@ namespace Omines\DirectAdmin\Objects;
 use Omines\DirectAdmin\Context\UserContext;
 use Omines\DirectAdmin\DirectAdminException;
 
+use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\SetCookie;
+
 /**
  * Basic wrapper around a DirectAdmin object as observed within a specific context.
  *
@@ -143,4 +146,41 @@ abstract class BaseObject
         });
         return $items;
     }
+
+	/** @var CookieJar */
+	protected $loginCookieJar;
+
+	public function getLoginCookieJar() {
+		if ( ! empty( $loginCookieJar ) ) {
+			return $this->loginCookieJar;
+		}
+
+		$uri        = '/CMD_LOGIN';
+
+		$username = $this->getContext()->getConnection()->getUsername();
+		$password = $this->getContext()->getConnection()->getPassword();
+
+		$postParameters = [
+			'username' => $username,
+			'password' => $password,
+			'json'     => 'yes',
+		];
+
+		$options = [ 'form_params' => $postParameters ];
+
+		$cookie_jar = new CookieJar();
+
+		$result = $this->getContext()->getConnection()->rawRequestWithCookies(
+			$method = 'POST', $uri, $options, $cookie_jar
+		);
+
+		if ( ! empty( $result['error'] ) ) {
+			throw new DirectAdminException(
+				"$method to '$uri' failed: $result[details] ($result[text])"
+			);
+		}
+
+		$this->loginCookieJar = $cookie_jar;
+		return $this->loginCookieJar;
+	}
 }

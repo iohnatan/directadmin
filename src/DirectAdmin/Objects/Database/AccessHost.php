@@ -14,7 +14,11 @@ use Omines\DirectAdmin\Objects\Database;
 use Omines\DirectAdmin\Objects\BaseObject;
 
 /**
- * AccessHost.
+ * API for database quotas and access hosts.
+ * Access Hosts: Allows external computers hosts to access the mysql database.
+ *
+ * @link https://www.directadmin.com/features.php?id=503
+ * @link https://www.directadmin.com/features.php?id=100
  */
 class AccessHost extends BaseObject
 {
@@ -33,7 +37,8 @@ class AccessHost extends BaseObject
 
     /**
      * @param Database $database
-     * @param string   $host
+     * @param string   $host     Any ip, hostname. Can use wildcards.
+     *
      * @return AccessHost
      */
     public static function create(Database $database, $host)

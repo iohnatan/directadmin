@@ -31,13 +31,13 @@ class Database extends BaseObject
     /**
      * Database constructor.
      *
-     * @param string $name Name of the database
-     * @param User $owner Database owner
+     * @param string      $name    Name of the database
+     * @param User        $owner   Database owner
      * @param UserContext $context Context within which the object is valid
      */
     public function __construct($name, User $owner, UserContext $context)
     {
-        parent::__construct($name, $context);
+        parent::__construct( $name, $context );
         $this->owner = $owner;
         $this->databaseName = $this->owner->getUsername() . '_' . $this->getName();
     }
@@ -96,12 +96,13 @@ class Database extends BaseObject
     }
 
     /**
-     * @param string $name
+     * @param string $host Any ip, hostname. Can use wildcards.
+     *
      * @return Database\AccessHost
      */
-    public function createAccessHost($name)
+    public function createAccessHost( $host )
     {
-        $accessHost = Database\AccessHost::create($this, $name);
+        $accessHost = Database\AccessHost::create( $this, $host );
         $this->getContext()->getContextUser()->clearCache();
         return $accessHost;
     }

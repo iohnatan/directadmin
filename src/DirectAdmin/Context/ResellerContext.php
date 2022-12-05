@@ -12,14 +12,32 @@ namespace Omines\DirectAdmin\Context;
 
 use Omines\DirectAdmin\Objects\BaseObject;
 use Omines\DirectAdmin\Objects\Users\User;
+use Omines\DirectAdmin\Objects\Users\Reseller;
 
 /**
- * Context for reseller functions.
+ * Encapsulates a contextual connection to a server for reseller functions.
  *
  * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
 class ResellerContext extends UserContext
 {
+
+    /** @var Reseller */
+    private $user;
+
+    /**
+     * Returns the actual user object behind the context.
+     *
+     * @return Reseller The user object behind the context
+     */
+    public function getContextUser()
+    {
+        if (!isset($this->user)) {
+            $this->user = User::fromConfig($this->invokeApiGet('SHOW_USER_CONFIG'), $this);
+        }
+        return $this->user;
+    }
+
     /**
      * Creates a new user on the server.
      *

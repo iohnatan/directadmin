@@ -61,6 +61,60 @@ class User extends BaseObject
     }
 
     /**
+     * Get cronjobs.
+     *
+     * @link https://www.directadmin.com/features.php?id=364
+     *
+     * @return array return example: [
+	 *   '000'    => '*\/5 * * * * command1',
+	 *   '001'    => '*\/5 * * * * command2',
+	 *   'MAILTO' => '',
+	 *   'PATH'   => '/usr/sbin:/home/username/.local/bin:/home/username/bin'
+	 * ]
+     */
+    public function get_cronjobs() {
+        return $this->getContext()->invokeApiPost( 'CRON_JOBS' );
+    }
+
+    /**
+     * Add a cronjob.
+     *
+     * @link https://www.directadmin.com/features.php?id=364
+     *
+	 * @param string $minute     5 * * * * -> at the 5th minute of every hour.
+	 *                           *\/5 * * * * -> every 5 minutes of every hour (slashes means step values).
+	 * @param string $hour       .
+	 * @param string $dayofmonth .
+	 * @param string $month      .
+	 * @param string $dayofweek  .
+	 * @param string $command    .
+     *
+     * @return array
+     */
+    public function add_cronjob(
+        string $minute,
+        string $hour,
+        string $dayofmonth,
+        string $month,
+        string $dayofweek,
+        string $command
+    )
+    {
+        return $this->getContext()->invokeApiPost(
+            'CRON_JOBS',
+            [
+                'action'     => 'create',
+                'minute'     => $minute,
+                'hour'       => $hour,
+                'dayofmonth' => $dayofmonth,
+                'month'      => $month,
+                'dayofweek'  => $dayofweek,
+                'command'    => $command,
+            ]
+        );
+    }
+
+    /**
      * Creates a new database under this user.
      *
      * @param string $name Database name, without <user>_ prefix
@@ -311,7 +365,10 @@ class User extends BaseObject
         $this->getContext()->invokeApiPost('MODIFY_USER', array_merge(
                 $this->loadConfig(),
                 Conversion::processUnlimitedOptions($newConfig),
-                ['action' => 'customize', 'user' => $this->getUsername()]
+                [
+                    'action' => 'customize',
+                    'user' => $this->getUsername(),
+                ]
         ));
         $this->clearCache();
     }

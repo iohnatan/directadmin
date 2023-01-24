@@ -10,6 +10,8 @@
 
 namespace Omines\DirectAdmin\Utility;
 
+use GuzzleHttp\Psr7;
+
 /**
  * Static helper class for various conversion operations.
  *
@@ -70,7 +72,7 @@ class Conversion
         $unescaped = preg_replace_callback('/&#([0-9]{2})/', function ($val) {
             return chr($val[1]);
         }, $data);
-        return \GuzzleHttp\Psr7\parse_query($unescaped);
+        return \GuzzleHttp\Psr7\Query::parse($unescaped);
     }
 
     /**

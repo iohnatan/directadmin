@@ -38,8 +38,6 @@ class Cloudlinux extends BaseObject {
 	/**
 	 * Get FORGERY PROTECTION TOKEN.
 	 *
-	 * @since x.x.x
-	 *
 	 * @return SetCookie
 	 */
 	public function getCsrfCookie() {
@@ -66,8 +64,6 @@ class Cloudlinux extends BaseObject {
 	/**
 	 * Undocumented.
 	 *
-	 * @since x.x.x
-	 *
 	 * @param string $version .
 	 *
 	 * @return void
@@ -87,13 +83,11 @@ class Cloudlinux extends BaseObject {
 			'csrftoken'               => $csrftoken, // also required.
 		];
 
-		$this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
+		return $this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
 	}
 
 	/**
 	 * Undocumented.
-	 *
-	 * @since x.x.x
 	 *
 	 * @param string   $version    .
 	 * @param string[] $extensions .
@@ -122,13 +116,11 @@ class Cloudlinux extends BaseObject {
 			'csrftoken'           => $csrftoken,
 		];
 
-		$this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
+		return $this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
 	}
 
 	/**
 	 * Undocumented.
-	 *
-	 * @since x.x.x
 	 *
 	 * @param string $version .
 	 * @param string $options .
@@ -153,7 +145,7 @@ class Cloudlinux extends BaseObject {
 			'csrftoken'           => $csrftoken,
 		];
 
-		$this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
+		return $this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
 	}
 
 	/**

@@ -10,7 +10,7 @@
 
 use Omines\DirectAdmin\Context\AdminContext;
 use Omines\DirectAdmin\Context\ResellerContext;
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 use Omines\DirectAdmin\Objects\Users\Reseller;
 
 /**
@@ -28,7 +28,7 @@ class ResellerTest extends \PHPUnit\Framework\TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$master = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        self::$master = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         self::$reseller = self::$master->createReseller(RESELLER_USERNAME, RESELLER_PASSWORD, TEST_EMAIL, TEST_RESELLER_DOMAIN);
     }
 

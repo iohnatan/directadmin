@@ -10,9 +10,8 @@
 
 namespace Omines\DirectAdmin\Context;
 
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 use Omines\DirectAdmin\DirectAdminException;
-use Omines\DirectAdmin\Objects\Domain;
 use Omines\DirectAdmin\Objects\Users\User;
 
 /**
@@ -25,20 +24,19 @@ class UserContext extends BaseContext
     /** @var User */
     private $user;
 
-    /**
-     * Constructs the object.
+    /** Constructs the object.
      *
-     * @param DirectAdmin $connection A prepared connection
-     * @param bool $validate Whether to check if the connection matches the context
+     * @param DA_Connection $connection A prepared connection
+     * @param bool          $validate   Whether to check if the connection matches the context
      */
-    public function __construct(DirectAdmin $connection, $validate = false)
+    public function __construct( DA_Connection $connection, $validate = false )
     {
         parent::__construct($connection);
         if ($validate) {
             $classMap = [
-                DirectAdmin::ACCOUNT_TYPE_ADMIN => AdminContext::class,
-                DirectAdmin::ACCOUNT_TYPE_RESELLER => ResellerContext::class,
-                DirectAdmin::ACCOUNT_TYPE_USER => self::class,
+                DA_Connection::ACCOUNT_TYPE_ADMIN    => AdminContext::class,
+                DA_Connection::ACCOUNT_TYPE_RESELLER => ResellerContext::class,
+                DA_Connection::ACCOUNT_TYPE_USER     => self::class,
             ];
             if ($classMap[$this->getType()] != get_class($this)) {
                 /* @codeCoverageIgnoreStart */
@@ -48,8 +46,7 @@ class UserContext extends BaseContext
         }
     }
 
-    /**
-     * Returns the type of the account (user/reseller/admin).
+    /** Returns the type of the account (user/reseller/admin).
      *
      * @return string One of the DirectAdmin::ACCOUNT_TYPE_ constants describing the type of underlying account
      */
@@ -58,8 +55,7 @@ class UserContext extends BaseContext
         return $this->getContextUser()->getType();
     }
 
-    /**
-     * Returns the actual user object behind the context.
+    /** Returns the actual user object behind the context.
      *
      * @return User The user object behind the context
      */
@@ -71,29 +67,7 @@ class UserContext extends BaseContext
         return $this->user;
     }
 
-    /**
-     * Returns a domain managed by the current user.
-     *
-     * @param string $domainName The requested domain name
-     * @return null|Domain The domain if found, or NULL if it does not exist
-     */
-    public function getDomain($domainName)
-    {
-        return $this->getContextUser()->getDomain($domainName);
-    }
-
-    /**
-     * Returns a full list of the domains managed by the current user.
-     *
-     * @return Domain[]
-     */
-    public function getDomains()
-    {
-        return $this->getContextUser()->getDomains();
-    }
-
-    /**
-     * Returns the username of the current context.
+    /** Returns the username of the current context.
      *
      * @return string Username for the current context
      */

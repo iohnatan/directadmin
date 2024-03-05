@@ -35,17 +35,108 @@ class Cloudlinux extends BaseObject {
 		parent::__construct( $name = '', $context );
 	}
 
-	/**
-	 * Get FORGERY PROTECTION TOKEN.
+	/** Undocumented.
+	 *
+	 * @param string $version .
+	 *
+	 * @return void
+	 */
+	public function setAccountPhpVersion( $version ) {
+		$loginCookieJar = $this->getContext()->getConnection()->getLoginCookieJar();
+
+		$csrfCookie = $this->getCsrfCookie();
+		$csrftoken   = $csrfCookie->getValue();
+		$loginCookieJar->setCookie( $csrfCookie );
+
+		$parameters = [
+			'command'                 => 'cloudlinux-selector',
+			'method'                  => 'set',
+			'params[interpreter]'     => 'php',
+			'params[current-version]' => $version,
+			'csrftoken'               => $csrftoken, // also required.
+		];
+
+		// https://server:2222/CMD_PLUGINS/phpselector/index.raw?c=send-request.
+		$query_string = 'c=send-request';
+		return $this->invokeApiPost( $query_string, $parameters, $loginCookieJar );
+	}
+
+	/** Undocumented.
+	 *
+	 * @param string   $version    .
+	 * @param string[] $extensions .
+	 *
+	 * @return void
+	 */
+	public function setPhpVersionEnabledExtensions( $version, $extensions ) {
+		$enabled_extensions = [];
+		foreach ( $extensions as $extension ) {
+			$enabled_extensions[ $extension ] = 'enabled';
+		}
+		$json_enabled_extensions = json_encode( $enabled_extensions );
+
+		$loginCookieJar = $this->getContext()->getConnection()->getLoginCookieJar();
+
+		$csrfCookie = $this->getCsrfCookie();
+		$csrftoken   = $csrfCookie->getValue();
+		$loginCookieJar->setCookie( $csrfCookie );
+
+		$parameters = [
+			'command'             => 'cloudlinux-selector',
+			'method'              => 'set',
+			'params[interpreter]' => 'php',
+			'params[version]'     => $version,
+			'params[extensions]'  => $json_enabled_extensions,
+			'csrftoken'           => $csrftoken,
+		];
+
+		$query_string = 'c=send-request';
+		return $this->invokeApiPost( $query_string, $parameters, $loginCookieJar );
+	}
+
+	/** Undocumented.
+	 *
+	 * @param string $version .
+	 * @param string $options .
+	 *
+	 * @return void
+	 */
+	public function setPhpVersionOptions( $version, $options ) {
+		$json_options = json_encode( $options );
+
+		$loginCookieJar = $this->getContext()->getConnection()->getLoginCookieJar();
+
+		$csrfCookie = $this->getCsrfCookie();
+		$csrftoken   = $csrfCookie->getValue();
+		$loginCookieJar->setCookie( $csrfCookie );
+
+		$parameters = [
+			'command'             => 'cloudlinux-selector',
+			'method'              => 'set',
+			'params[interpreter]' => 'php',
+			'params[version]'     => $version,
+			'params[options]'     => $json_options,
+			'csrftoken'           => $csrftoken,
+		];
+
+		$query_string = 'c=send-request';
+		return $this->invokeApiPost( $query_string, $parameters, $loginCookieJar );
+	}
+
+	/** Get FORGERY PROTECTION TOKEN.
 	 *
 	 * @return SetCookie
 	 */
 	public function getCsrfCookie() {
+		// https://server:2222/CMD_PLUGINS/phpselector/index.raw?a=cookie
 		$uri        = static::$request_path . '?a=cookie';
 		$cookie_jar = new CookieJar();
 
 		$result = $this->getContext()->getConnection()->rawRequestWithCookies(
-			$method = 'POST', $uri, [], $cookie_jar
+			$method = 'POST',
+			$uri,
+			[], // $options.
+			$cookie_jar
 		);
 
 		if ( ! empty( $result['error'] ) ) {
@@ -61,95 +152,7 @@ class Cloudlinux extends BaseObject {
 		return $csrf;
 	}
 
-	/**
-	 * Undocumented.
-	 *
-	 * @param string $version .
-	 *
-	 * @return void
-	 */
-	public function setAccountPhpVersion( $version ) {
-		$loginCookieJar = $this->getLoginCookieJar();
-
-		$csrfCookie = $this->getCsrfCookie();
-		$csrftoken   = $csrfCookie->getValue();
-		$loginCookieJar->setCookie( $csrfCookie );
-
-		$parameters = [
-			'command'                 => 'cloudlinux-selector',
-			'method'                  => 'set',
-			'params[interpreter]'     => 'php',
-			'params[current-version]' => $version,
-			'csrftoken'               => $csrftoken, // also required.
-		];
-
-		return $this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
-	}
-
-	/**
-	 * Undocumented.
-	 *
-	 * @param string   $version    .
-	 * @param string[] $extensions .
-	 *
-	 * @return void
-	 */
-	public function setPhpVersionEnabledExtensions( $version, $extensions ) {
-		$enabled_extensions = [];
-		foreach ( $extensions as $extension ) {
-			$enabled_extensions[ $extension ] = 'enabled';
-		}
-		$json_enabled_extensions = json_encode( $enabled_extensions );
-
-		$loginCookieJar = $this->getLoginCookieJar();
-
-		$csrfCookie = $this->getCsrfCookie();
-		$csrftoken   = $csrfCookie->getValue();
-		$loginCookieJar->setCookie( $csrfCookie );
-
-		$parameters = [
-			'command'             => 'cloudlinux-selector',
-			'method'              => 'set',
-			'params[interpreter]' => 'php',
-			'params[version]'     => $version,
-			'params[extensions]'  => $json_enabled_extensions,
-			'csrftoken'           => $csrftoken,
-		];
-
-		return $this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
-	}
-
-	/**
-	 * Undocumented.
-	 *
-	 * @param string $version .
-	 * @param string $options .
-	 *
-	 * @return void
-	 */
-	public function setPhpVersionOptions( $version, $options ) {
-		$json_options = json_encode( $options );
-
-		$loginCookieJar = $this->getLoginCookieJar();
-
-		$csrfCookie = $this->getCsrfCookie();
-		$csrftoken   = $csrfCookie->getValue();
-		$loginCookieJar->setCookie( $csrfCookie );
-
-		$parameters = [
-			'command'             => 'cloudlinux-selector',
-			'method'              => 'set',
-			'params[interpreter]' => 'php',
-			'params[version]'     => $version,
-			'params[options]'     => $json_options,
-			'csrftoken'           => $csrftoken,
-		];
-
-		return $this->invokeApiPost( 'c=send-request', $parameters, $loginCookieJar );
-	}
-
-	/**
-	 * Invokes the DirectAdmin API with specific options.
+	/** Invokes the DirectAdmin API with specific options.
 	 *
 	 * @param string    $query_string   .
 	 * @param array     $postParameters Optional. Form parameters
@@ -158,7 +161,11 @@ class Cloudlinux extends BaseObject {
 	 * @return array
 	 * @throws DirectAdminException If anything went wrong on the network level
 	 */
-	public function invokeApiPost( $query_string, $postParameters = [], $cookie_jar = null ) {
+	public function invokeApiPost(
+		string $query_string,
+		array $postParameters = [],
+		$cookie_jar = null
+	) {
 		$uri = static::$request_path . "?$query_string";
 
 		$connection = $this->getContext()->getConnection();
@@ -176,10 +183,13 @@ class Cloudlinux extends BaseObject {
 			$method = 'POST', $uri, $options
 		);
 
+		// check native DA error.
 		if ( ! empty( $result['error'] ) ) {
 			throw new DirectAdminException(
 				"$method to '$uri' failed: $result[details] ($result[text])");
 		}
+
+		// check cloudlinux json response.
 		return Conversion::sanitizeArray( $result );
 	}
 

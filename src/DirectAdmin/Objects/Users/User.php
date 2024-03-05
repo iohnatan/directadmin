@@ -12,18 +12,14 @@ namespace Omines\DirectAdmin\Objects\Users;
 
 use Omines\DirectAdmin\Context\ResellerContext;
 use Omines\DirectAdmin\Context\UserContext;
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 use Omines\DirectAdmin\DirectAdminException;
 use Omines\DirectAdmin\Objects\Database;
 use Omines\DirectAdmin\Objects\Domain;
 use Omines\DirectAdmin\Objects\BaseObject;
 use Omines\DirectAdmin\Utility\Conversion;
 
-use GuzzleHttp\Cookie\CookieJar;
-use GuzzleHttp\Cookie\SetCookie;
-
-/**
- * User.
+/** User.
  *
  * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
@@ -36,12 +32,11 @@ class User extends BaseObject
     /** @var Domain[] * */
     private $domains;
 
-    /**
-     * Construct the object.
+    /** Construct the object.
      *
-     * @param string $name Username of the account
+     * @param string      $name    Username of the account
      * @param UserContext $context The context managing this object
-     * @param mixed|null $config An optional preloaded configuration
+     * @param mixed|null  $config  An optional preloaded configuration
      */
     public function __construct($name, UserContext $context, $config = null)
     {
@@ -51,8 +46,7 @@ class User extends BaseObject
         }
     }
 
-    /**
-     * Clear the object's internal cache.
+    /** Clear the object's internal cache.
      */
     public function clearCache()
     {
@@ -60,24 +54,26 @@ class User extends BaseObject
         parent::clearCache();
     }
 
-    /**
-     * Get cronjobs.
-     *
+    /** Get cronjobs.
+	 *
+	 * return example:
+	 * ```
+	 * [
+	 *    '000'    => '*\/5 * * * * command1',
+	 *    '001'    => '*\/5 * * * * command2',
+	 *    'MAILTO' => '',
+	 *    'PATH'   => '/usr/sbin:/home/username/.local/bin:/home/username/bin'
+	 * ]
+     *```
      * @link https://www.directadmin.com/features.php?id=364
      *
-     * @return array return example: [
-	 *   '000'    => '*\/5 * * * * command1',
-	 *   '001'    => '*\/5 * * * * command2',
-	 *   'MAILTO' => '',
-	 *   'PATH'   => '/usr/sbin:/home/username/.local/bin:/home/username/bin'
-	 * ]
+     * @return array
      */
     public function get_cronjobs() {
         return $this->getContext()->invokeApiPost( 'CRON_JOBS' );
     }
 
-    /**
-     * Add a cronjob.
+    /** Add a cronjob.
      *
      * @link https://www.directadmin.com/features.php?id=364
      *
@@ -114,8 +110,46 @@ class User extends BaseObject
         );
     }
 
-    /**
-     * Creates a new database under this user.
+    /** Delete a cronjob.
+     *
+     * @link https://www.directadmin.com/features.php?id=364
+     *
+	 * @param string $cron_id .
+     *
+     * @return array
+     */
+    public function delete_cronjob(
+       string $cron_id
+    )
+    {
+        return $this->getContext()->invokeApiPost(
+            'CRON_JOBS',
+            [
+                'action'     => 'delete',
+                'select0'    => $cron_id,
+            ]
+        );
+    }
+
+    /** Set cronjobs output email (MAILTO).
+     *
+     * @link https://www.directadmin.com/features.php?id=364
+     *
+	 * @param string $email_address .
+     *
+     * @return array
+     */
+    public function set_cronjobs_mailto( string $email_address ) {
+        return $this->getContext()->invokeApiPost(
+            'CRON_JOBS',
+            [
+                'action' => 'saveemail',
+                'email'  => $email_address,
+            ]
+        );
+    }
+
+    /** Creates a new database under this user.
      *
      * @param string $name Database name, without <user>_ prefix
      * @param string $username Username to access the database with, without <user>_ prefix
@@ -129,8 +163,7 @@ class User extends BaseObject
         return $db;
     }
 
-    /**
-     * Creates a new domain under this user.
+    /** Creates a new domain under this user.
      *
      * @param string $domainName Domain name to create
      * @param float|null $bandwidthLimit Bandwidth limit in MB, or NULL to share with account
@@ -254,8 +287,7 @@ class User extends BaseObject
         return intval($this->getUsage('vdomains'));
     }
 
-    /**
-     * Returns whether the user is currently suspended.
+    /** Returns whether the user is currently suspended.
      *
      * @return bool
      */
@@ -282,9 +314,11 @@ class User extends BaseObject
         });
     }
 
-    /**
-     * @param string $domainName
-     * @return null|Domain
+    /** Returns a domain managed by the current user.
+	 *
+     * @param string $domainName The requested domain name.
+	 *
+     * @return null|Domain The domain if found, or NULL if it does not exist.
      */
     public function getDomain($domainName)
     {
@@ -294,14 +328,15 @@ class User extends BaseObject
         return isset($this->domains[$domainName]) ? $this->domains[$domainName] : null;
     }
 
-    /**
+    /** Returns a full list of the domains managed by the current user.
+	 *
      * @return Domain[]
      */
     public function getDomains()
     {
         if (!isset($this->domains)) {
             if (!$this->isSelfManaged()) {
-                $this->domains = $this->impersonate()->getDomains();
+                $this->domains = $this->impersonate()->getContextUser()->getDomains();
             } else {
                 $this->domains = BaseObject::toRichObjectArray($this->getContext()->invokeApiGet('ADDITIONAL_DOMAINS'), Domain::class, $this->getContext());
             }
@@ -309,8 +344,9 @@ class User extends BaseObject
         return $this->domains;
     }
 
-    /**
-     * @return string The user type, as one of the ACCOUNT_TYPE_ constants in the DirectAdmin class
+    /** The user type, as one of the ACCOUNT_TYPE_ constants in the DirectAdmin class.
+	 *
+     * @return string
      */
     public function getType()
     {
@@ -341,16 +377,19 @@ class User extends BaseObject
         return Conversion::toBool($this->getConfig('ssl'));
     }
 
-    /**
+    /** Impersonates a user, allowing the reseller/admin to act on their behalf.
+	 *
+     * @param bool $validate Whether to check the user exists and is a user.
+	 *
      * @return UserContext
      */
-    public function impersonate()
+    public function impersonate( bool $validate = false )
     {
         /** @var ResellerContext $context */
         if (!($context = $this->getContext()) instanceof ResellerContext) {
             throw new DirectAdminException('You need to be at least a reseller to impersonate');
         }
-        return $context->impersonateUser($this->getUsername());
+        return $context->impersonateUser( $this->getUsername(), $validate );
     }
 
     /**
@@ -405,23 +444,23 @@ class User extends BaseObject
         $this->modifyConfig(['vdomains' => isset($newValue) ? intval($newValue) : null]);
     }
 
-    /**
-     * Constructs the correct object from the given user config.
+    /** Constructs the correct object from the given user config.
      *
-     * @param array $config The raw config from DirectAdmin
-     * @param UserContext $context The context within which the config was retrieved
-     * @return Admin|Reseller|User The correct object
+     * @param array                 $config The raw config from DirectAdmin
+     * @param UserContext           $context The context within which the config was retrieved
+	 *
+     * @return Admin|Reseller|User  The correct object
      * @throws DirectAdminException If the user type could not be determined
      */
-    public static function fromConfig($config, UserContext $context)
+    public static function fromConfig( $config, UserContext $context )
     {
         $name = $config['username'];
         switch ($config['usertype']) {
-            case DirectAdmin::ACCOUNT_TYPE_USER:
+            case DA_Connection::ACCOUNT_TYPE_USER:
                 return new self($name, $context, $config);
-            case DirectAdmin::ACCOUNT_TYPE_RESELLER:
+            case DA_Connection::ACCOUNT_TYPE_RESELLER:
                 return new Reseller($name, $context, $config);
-            case DirectAdmin::ACCOUNT_TYPE_ADMIN:
+            case DA_Connection::ACCOUNT_TYPE_ADMIN:
                 return new Admin($name, $context, $config);
             default:
                 throw new DirectAdminException("Unknown user type '$config[usertype]'");
@@ -462,18 +501,22 @@ class User extends BaseObject
         return $this->isSelfManaged() ? $this->getContext() : $this->impersonate();
     }
 
-    /**
-     * @return User The user acting as himself
+    /** The user acting as himself.
+	 *
+	 * @param bool $validate Whether to check the user exists and is a user.
+	 *
+     * @return User
      */
-    protected function getSelfManagedUser()
+    public function getSelfManagedUser( bool $validate = false )
     {
-        return $this->isSelfManaged() ? $this : $this->impersonate()->getContextUser();
+        return $this->isSelfManaged() ? $this : $this->impersonate( $validate )->getContextUser();
     }
 
-    /**
-     * @return bool Whether the account is managing itself
+    /** Whether the account is managing itself.
+	 *
+     * @return bool
      */
-    protected function isSelfManaged()
+    public function isSelfManaged()
     {
         return $this->getUsername() === $this->getContext()->getUsername();
     }

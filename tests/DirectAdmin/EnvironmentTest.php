@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 
 /**
  * Tests for responses to invalid environment configuration.
@@ -22,7 +22,7 @@ class EnvironmentTest extends \PHPUnit\Framework\TestCase
      */
     public function testCorruptedUrl()
     {
-        $admin = DirectAdmin::connectAdmin('noproto://www.google.com/', 'username', 'password');
+        $admin = DA_Connection::connectAdmin('noproto://www.google.com/', 'username', 'password');
         $admin->getContextUser()->getType();
     }
 
@@ -31,7 +31,7 @@ class EnvironmentTest extends \PHPUnit\Framework\TestCase
      */
     public function testInvalidUsername()
     {
-        $admin = DirectAdmin::connectAdmin(DIRECTADMIN_URL, '_invalid', MASTER_ADMIN_PASSWORD);
+        $admin = DA_Connection::connectAdmin(DIRECTADMIN_URL, '_invalid', MASTER_ADMIN_PASSWORD);
         $admin->getContextUser()->getType();
     }
 
@@ -40,7 +40,7 @@ class EnvironmentTest extends \PHPUnit\Framework\TestCase
      */
     public function testInvalidPassword()
     {
-        $admin = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD . '_invalid');
+        $admin = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD . '_invalid');
         $admin->getContextUser()->getType();
     }
 
@@ -49,7 +49,7 @@ class EnvironmentTest extends \PHPUnit\Framework\TestCase
      */
     public function testInvalidCall()
     {
-        $admin = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        $admin = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         $admin->invokeApiGet('INVALID_COMMAND');
     }
 
@@ -58,7 +58,7 @@ class EnvironmentTest extends \PHPUnit\Framework\TestCase
      */
     public function testInvalidUrl()
     {
-        $admin = DirectAdmin::connectAdmin('http://www.google.com/', 'username', 'password');
+        $admin = DA_Connection::connectAdmin('http://www.google.com/', 'username', 'password');
         $admin->getContextUser()->getType();
     }
 }

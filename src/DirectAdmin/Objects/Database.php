@@ -42,8 +42,7 @@ class Database extends BaseObject
         $this->databaseName = $this->owner->getUsername() . '_' . $this->getName();
     }
 
-    /**
-     * Creates a new database under the specified user.
+    /** Creates a new database under the specified user.
      *
      * @param User $user Owner of the database
      * @param string $name Database name, without <user>_ prefix
@@ -66,8 +65,7 @@ class Database extends BaseObject
         return new self($name, $user, $user->getContext());
     }
 
-    /**
-     * Deletes this database from the user.
+    /** Deletes this database from the user.
      */
     public function delete()
     {

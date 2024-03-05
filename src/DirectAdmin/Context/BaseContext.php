@@ -10,7 +10,7 @@
 
 namespace Omines\DirectAdmin\Context;
 
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 
 /**
  * Encapsulates a contextual connection to a DirectAdmin server.
@@ -19,31 +19,29 @@ use Omines\DirectAdmin\DirectAdmin;
  */
 abstract class BaseContext
 {
-    /** @var DirectAdmin */
+    /** @var DA_Connection */
     private $connection;
 
     /**
      * Constructs the object.
      *
-     * @param DirectAdmin $connection A prepared connection
+     * @param DA_Connection $connection A prepared connection
      */
-    public function __construct(DirectAdmin $connection)
+    public function __construct( DA_Connection $connection )
     {
         $this->connection = $connection;
     }
 
-    /**
-     * Returns the internal connection wrapper.
+    /** Returns the internal connection wrapper.
      *
-     * @return DirectAdmin
+     * @return DA_Connection
      */
     public function getConnection()
     {
         return $this->connection;
     }
 
-    /**
-     * Invokes the DirectAdmin API via HTTP GET.
+    /** Invokes the DirectAdmin API via HTTP GET.
      *
      * @param string $command DirectAdmin API command to invoke
      * @param array $query Optional query parameters
@@ -54,8 +52,7 @@ abstract class BaseContext
         return $this->connection->invokeApi('GET', $command, ['query' => $query]);
     }
 
-    /**
-     * Invokes the DirectAdmin API via HTTP POST.
+    /** Invokes the DirectAdmin API via HTTP POST.
      *
      * @param string $command DirectAdmin API command to invoke
      * @param array $postParameters Optional form parameters
@@ -66,7 +63,8 @@ abstract class BaseContext
         return $this->connection->invokeApi('POST', $command, ['form_params' => $postParameters]);
     }
 
-    /**
+    /** Undocumented.
+	 *
      * @param $method
      * @param $uri
      * @param $options

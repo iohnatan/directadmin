@@ -31,9 +31,8 @@ class Reseller extends User
         parent::__construct($name, $context, $config);
     }
 
-    /**
-     * Change a user password.
-     * 
+    /** Change a user password.
+     *
      * @link https://www.directadmin.com/features.php?id=736
      *
      * @return array
@@ -69,15 +68,18 @@ class Reseller extends User
                                      User::class, $this->getContext());
     }
 
-    /**
+    /** Returns a new ResellerContext acting as the specified reseller.
+	 *
+     * @param bool $validate Whether to check the reseller exists and is a reseller.
+	 *
      * @return ResellerContext
      */
-    public function impersonate()
+    public function impersonate( bool $validate = false )
     {
         /** @var AdminContext $context */
         if (!($context = $this->getContext()) instanceof AdminContext) {
             throw new DirectAdminException('You need to be an admin to impersonate a reseller');
         }
-        return $context->impersonateReseller($this->getUsername());
+        return $context->impersonateReseller( $this->getUsername( $validate ) );
     }
 }

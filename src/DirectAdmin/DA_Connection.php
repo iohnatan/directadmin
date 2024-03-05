@@ -19,12 +19,11 @@ use Omines\DirectAdmin\Context\ResellerContext;
 use Omines\DirectAdmin\Context\UserContext;
 use Omines\DirectAdmin\Utility\Conversion;
 
-/**
- * DirectAdmin API main class, encapsulating a specific account connection to a single server.
+/** DirectAdmin API main class, encapsulating a specific account connection to a single server.
  *
  * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
-class DirectAdmin
+class DA_Connection
 {
 	const ACCOUNT_TYPE_ADMIN = 'admin';
 	const ACCOUNT_TYPE_RESELLER = 'reseller';
@@ -45,8 +44,7 @@ class DirectAdmin
 	/** @var Client */
 	private $connection;
 
-	/**
-	 * Connects to DirectAdmin with an admin account.
+	/** Connects to DirectAdmin with an admin account.
 	 *
 	 * @param string $url The base URL of the DirectAdmin server
 	 * @param string $username The username of the account
@@ -59,8 +57,7 @@ class DirectAdmin
 		return new AdminContext(new self($url, $username, $password), $validate);
 	}
 
-	/**
-	 * Connects to DirectAdmin with a reseller account.
+	/** Connects to DirectAdmin with a reseller account.
 	 *
 	 * @param string $url The base URL of the DirectAdmin server
 	 * @param string $username The username of the account
@@ -73,8 +70,7 @@ class DirectAdmin
 		return new ResellerContext(new self($url, $username, $password), $validate);
 	}
 
-	/**
-	 * Connects to DirectAdmin with a user account.
+	/** Connects to DirectAdmin with a user account.
 	 *
 	 * @param string $url The base URL of the DirectAdmin server
 	 * @param string $username The username of the account
@@ -87,8 +83,7 @@ class DirectAdmin
 		return new UserContext(new self($url, $username, $password), $validate);
 	}
 
-	/**
-	 * Creates a connection wrapper to DirectAdmin as the specified account.
+	/** Creates a connection wrapper to DirectAdmin as the specified account.
 	 *
 	 * @param string $url The base URL of the DirectAdmin server
 	 * @param string $username The username of the account
@@ -107,8 +102,58 @@ class DirectAdmin
 		]);
 	}
 
-	/**
-	 * Returns the base url behind the current connection.
+	/** @var CookieJar */
+	protected $loginCookieJar;
+
+	public function getLoginCookieJar() {
+		if ( ! empty( $loginCookieJar ) ) {
+			return $this->loginCookieJar;
+		}
+
+		$uri        = '/CMD_LOGIN';
+
+		$password = $this->getPassword();
+		$username = $this->getUsername();
+		if ( $this->isManaged() ) {
+			$username = $this->getAuthenticatedUser() . "|$username";
+		}
+
+		$postParameters = [
+			'username' => $username,
+			'password' => $password,
+			'json'     => 'yes',
+		];
+
+		$options = [ 'form_params' => $postParameters ];
+
+		$cookie_jar = new CookieJar();
+
+		$result = $this->rawRequestWithCookies(
+			$method = 'POST', $uri, $options, $cookie_jar
+		);
+
+		if ( ! empty( $result['error'] ) ) {
+			throw new DirectAdminException(
+				"$method to '$uri' failed: $result[details] ($result[text])"
+			);
+		}
+
+		$this->loginCookieJar = $cookie_jar;
+		return $this->loginCookieJar;
+	}
+
+    /** Whether the connection is managed by the "login-as" feature.
+	 *
+	 * https://www.directadmin.com/api.php
+	 *
+     * @return bool
+     */
+    protected function isManaged()
+    {
+        return $this->getUsername() !== $this->getAuthenticatedUser();
+    }
+
+	/** Returns the base url behind the current connection.
 	 *
 	 * @return string
 	 */
@@ -116,9 +161,15 @@ class DirectAdmin
 		return $this->baseUrl;
 	}
 
+	/** Returns the authenticated username behind the current connection.
+	 *
+	 * @return string
+	 */
+	public function getAuthenticatedUser() {
+		return $this->authenticatedUser;
+	}
 
-	/**
-	 * Returns the username behind the current connection.
+	/** Returns the username behind the current connection.
 	 *
 	 * @return string Currently logged in user's username
 	 */
@@ -126,8 +177,7 @@ class DirectAdmin
 		return $this->username;
 	}
 
-	/**
-	 * Returns the password behind the current connection.
+	/** Returns the password behind the current connection.
 	 *
 	 * @return string Currently logged in user's password
 	 */
@@ -135,8 +185,7 @@ class DirectAdmin
 		return $this->password;
 	}
 
-	/**
-	 * Invokes the DirectAdmin API with specific options.
+	/** Invokes the DirectAdmin API with specific options.
 	 *
 	 * @param string $method HTTP method to use (ie. GET or POST)
 	 * @param string $command DirectAdmin API command to invoke
@@ -153,46 +202,22 @@ class DirectAdmin
 		return Conversion::sanitizeArray($result);
 	}
 
-	/**
-	 * Returns a clone of the connection logged in as a managed user or reseller.
+	/** Returns a clone of the connection logged in as a managed user or reseller.
 	 *
 	 * @param string $username
-	 * @return DirectAdmin
+	 * @return DA_Connection
 	 */
 	public function loginAs($username)
 	{
 		// DirectAdmin format is to just pipe the accounts together under the master password
-		return new self($this->baseUrl, $this->authenticatedUser . "|{$username}", $this->password);
+		return new self(
+			$this->baseUrl,
+			$this->authenticatedUser . "|{$username}",
+			$this->password
+		);
 	}
 
-	/**
-	 * Sends a raw request to DirectAdmin.
-	 *
-	 * @param string $method  .
-	 * @param string $uri     URI string.
-	 * @param array  $options Request options to apply. See \GuzzleHttp\RequestOptions.
-	 *                        https://docs.guzzlephp.org/en/stable/request-options.html
-	 *
-	 * @return array
-	 */
-	public function rawRequest( $method, $uri, $options )
-	{
-		try {
-			$response = $this->connection->request( $method, $uri, $options );
-			if ($response->getHeader('Content-Type')[0] == 'text/html') {
-				throw new DirectAdminException(sprintf('DirectAdmin API returned text/html to %s %s containing "%s"', $method, $uri, strip_tags($response->getBody()->getContents())));
-			}
-			$body = $response->getBody()->getContents();
-
-			return Conversion::responseToArray($body);
-		} catch (TransferException $exception) {
-			// Rethrow anything that causes a network issue
-			throw new DirectAdminException(sprintf('%s request to %s failed', $method, $uri), 0, $exception);
-		}
-	}
-
-	/**
-	 * Sends a raw request to DirectAdmin.
+	/** Sends a raw request to DirectAdmin.
 	 *
 	 * @param string    $method                      .
 	 * @param string    $uri                         URI string.
@@ -203,15 +228,47 @@ class DirectAdmin
 	 * @return array
 	 */
 	public function rawRequestWithCookies(
-		$method, $uri, $options, &$cookie_jar = null
+		string $method, string $uri, array $options, &$cookie_jar = null
 	) {
 		// https://docs.guzzlephp.org/en/stable/request-options.html#cookies.
 		$options['cookies'] = $cookie_jar;
 		return self::rawRequest( $method, $uri, $options );
 	}
 
-	/**
-	 * Sends a raw request to DirectAdmin.
+	/** Sends a raw request to DirectAdmin.
+	 *
+	 * @param string $method  .
+	 * @param string $uri     URI string.
+	 * @param array  $options Request options to apply. See \GuzzleHttp\RequestOptions.
+	 *                        https://docs.guzzlephp.org/en/stable/request-options.html
+	 *
+	 * @return array
+	 */
+	public function rawRequest( string $method, string $uri, array $options )
+	{
+		try {
+			$response = $this->connection->request( $method, $uri, $options );
+
+			// useful for debug, show if 'unauthorized' for example.
+			$xdirectadmin_header = $response->getHeader('X-Directadmin');
+
+			$body = $response->getBody()->getContents();
+			if ($response->getHeader('Content-Type')[0] == 'text/html') {
+				throw new DirectAdminException(
+					sprintf(
+						'DirectAdmin API returned text/html to %s %s containing "%s"',
+						$method, $uri, strip_tags( $body ) )
+					);
+			}
+
+			return Conversion::responseToArray($body);
+		} catch (TransferException $exception) {
+			// Rethrow anything that causes a network issue
+			throw new DirectAdminException(sprintf('%s request to %s failed', $method, $uri), 0, $exception);
+		}
+	}
+
+	/** Sends a raw request to DirectAdmin, but not checking if the response 'Content-Type' is valid.
 	 *
 	 * @param string    $method                      .
 	 * @param string    $uri                         URI string.

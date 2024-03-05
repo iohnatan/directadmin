@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 
 /**
  * AccountManagementTest.
@@ -25,7 +25,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     {
         try {
             // Ensure all test accounts are gone
-            $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+            $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
             $adminContext->deleteAccounts([USER_USERNAME, RESELLER_USERNAME, ADMIN_USERNAME]);
 
         } catch (\Exception $e) {
@@ -35,10 +35,10 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
 
     public function testCreateAdmin()
     {
-        $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         $admin = $adminContext->createAdmin(ADMIN_USERNAME, ADMIN_PASSWORD, TEST_EMAIL);
         $this->assertEquals(ADMIN_USERNAME, $admin->getUsername());
-        $this->assertEquals(DirectAdmin::ACCOUNT_TYPE_ADMIN, $admin->getType());
+        $this->assertEquals(DA_Connection::ACCOUNT_TYPE_ADMIN, $admin->getType());
     }
 
     /**
@@ -46,17 +46,17 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateReseller()
     {
-        $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, ADMIN_USERNAME, ADMIN_PASSWORD, true);
+        $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, ADMIN_USERNAME, ADMIN_PASSWORD, true);
         $reseller = $adminContext->createReseller(RESELLER_USERNAME, RESELLER_PASSWORD,
                         TEST_EMAIL, TEST_RESELLER_DOMAIN);
 
         $this->assertEquals(RESELLER_USERNAME, $reseller->getUsername());
-        $this->assertEquals(DirectAdmin::ACCOUNT_TYPE_RESELLER, $reseller->getType());
+        $this->assertEquals(DA_Connection::ACCOUNT_TYPE_RESELLER, $reseller->getType());
         $this->assertEquals($reseller->getDefaultDomain()->getDomainName(), TEST_RESELLER_DOMAIN);
 
         $getReseller = $adminContext->getReseller(RESELLER_USERNAME);
         $this->assertEquals(RESELLER_USERNAME, $getReseller->getUsername());
-        $this->assertEquals(DirectAdmin::ACCOUNT_TYPE_RESELLER, $getReseller->getType());
+        $this->assertEquals(DA_Connection::ACCOUNT_TYPE_RESELLER, $getReseller->getType());
     }
 
     /**
@@ -64,14 +64,14 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateUser()
     {
-        $resellerContext = DirectAdmin::connectReseller(DIRECTADMIN_URL, RESELLER_USERNAME, RESELLER_PASSWORD, true);
+        $resellerContext = DA_Connection::connectReseller(DIRECTADMIN_URL, RESELLER_USERNAME, RESELLER_PASSWORD, true);
         $this->assertNotEmpty($ips = $resellerContext->getIPs());
 
         $user = $resellerContext->createUser(USER_USERNAME, USER_PASSWORD,
                         TEST_EMAIL, TEST_USER_DOMAIN, $ips[0]);
 
         $this->assertEquals(USER_USERNAME, $user->getUsername());
-        $this->assertEquals(DirectAdmin::ACCOUNT_TYPE_USER, $user->getType());
+        $this->assertEquals(DA_Connection::ACCOUNT_TYPE_USER, $user->getType());
         $this->assertEquals($user->getDefaultDomain()->getDomainName(), TEST_USER_DOMAIN);
     }
 
@@ -80,7 +80,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginUser()
     {
-        $userContext = DirectAdmin::connectUser(DIRECTADMIN_URL, USER_USERNAME, USER_PASSWORD, true);
+        $userContext = DA_Connection::connectUser(DIRECTADMIN_URL, USER_USERNAME, USER_PASSWORD, true);
         $this->assertEquals(USER_USERNAME, $userContext->getUsername());
         $this->assertEquals(USER_USERNAME, $userContext->getContextUser()->getUsername());
     }
@@ -90,10 +90,10 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testImpersonation()
     {
-        $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, ADMIN_USERNAME, ADMIN_PASSWORD, true);
+        $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, ADMIN_USERNAME, ADMIN_PASSWORD, true);
         $resellerContext = $adminContext->impersonateReseller(RESELLER_USERNAME);
         $userContext = $resellerContext->impersonateUser(USER_USERNAME);
-        $this->assertEquals(DirectAdmin::ACCOUNT_TYPE_USER, $userContext->getType());
+        $this->assertEquals(DA_Connection::ACCOUNT_TYPE_USER, $userContext->getType());
         $this->assertEquals(USER_USERNAME, $userContext->getContextUser()->getUsername());
     }
 
@@ -104,7 +104,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     {
         // Have to separately suspend the user as otherwise the order is not determined whether it's containing
         // reseller is suspended first. Also - it implicitly tests both calls like this
-        $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         $adminContext->suspendAccount(USER_USERNAME);
         $adminContext->suspendAccounts([RESELLER_USERNAME, ADMIN_USERNAME]);
 
@@ -123,7 +123,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testUnsuspendAccounts()
     {
-        $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         $adminContext->unsuspendAccount(USER_USERNAME);
         $adminContext->unsuspendAccounts([RESELLER_USERNAME, ADMIN_USERNAME]);
 
@@ -144,7 +144,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     {
         // Have to separately delete the user as otherwise the order is not determined whether it's containing
         // reseller is removed first. Also - it implicitly tests both calls like this
-        $adminContext = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        $adminContext = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         $adminContext->deleteAccount(USER_USERNAME);
         $adminContext->deleteAccounts([RESELLER_USERNAME, ADMIN_USERNAME]);
 

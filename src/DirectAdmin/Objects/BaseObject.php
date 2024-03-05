@@ -16,8 +16,7 @@ use Omines\DirectAdmin\DirectAdminException;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Cookie\SetCookie;
 
-/**
- * Basic wrapper around a DirectAdmin object as observed within a specific context.
+/** Basic wrapper around a DirectAdmin object as observed within a specific context.
  *
  * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
@@ -65,8 +64,7 @@ abstract class BaseObject
         return $this->cache[$key];
     }
 
-    /**
-     * Retrieves a keyed item from inside a cache item.
+    /** Retrieves a keyed item from inside a cache item.
      *
      * @param string $key
      * @param string $item
@@ -87,8 +85,7 @@ abstract class BaseObject
         return isset($cache[$item]) ? $cache[$item] : $defaultItem;
     }
 
-    /**
-     * Sets a specific cache item, for when a cacheable value was a by-product.
+    /** Sets a specific cache item, for when a cacheable value was a by-product.
      *
      * @param string $key
      * @param mixed $value
@@ -106,8 +103,7 @@ abstract class BaseObject
         return $this->context;
     }
 
-    /**
-     * Protected as a derived class may want to offer the name under a different name.
+    /** Protected as a derived class may want to offer the name under a different name.
      *
      * @return string
      */
@@ -116,8 +112,7 @@ abstract class BaseObject
         return $this->name;
     }
 
-    /**
-     * Converts an array of string items to an associative array of objects of the specified type.
+    /** Converts an array of string items to an associative array of objects of the specified type.
      *
      * @param array $items
      * @param string $class
@@ -131,8 +126,7 @@ abstract class BaseObject
         }, $items));
     }
 
-    /**
-     * Converts an associative array of descriptors to objects of the specified type.
+    /** Converts an associative array of descriptors to objects of the specified type.
      *
      * @param array $items
      * @param string $class
@@ -146,41 +140,4 @@ abstract class BaseObject
         });
         return $items;
     }
-
-	/** @var CookieJar */
-	protected $loginCookieJar;
-
-	public function getLoginCookieJar() {
-		if ( ! empty( $loginCookieJar ) ) {
-			return $this->loginCookieJar;
-		}
-
-		$uri        = '/CMD_LOGIN';
-
-		$username = $this->getContext()->getConnection()->getUsername();
-		$password = $this->getContext()->getConnection()->getPassword();
-
-		$postParameters = [
-			'username' => $username,
-			'password' => $password,
-			'json'     => 'yes',
-		];
-
-		$options = [ 'form_params' => $postParameters ];
-
-		$cookie_jar = new CookieJar();
-
-		$result = $this->getContext()->getConnection()->rawRequestWithCookies(
-			$method = 'POST', $uri, $options, $cookie_jar
-		);
-
-		if ( ! empty( $result['error'] ) ) {
-			throw new DirectAdminException(
-				"$method to '$uri' failed: $result[details] ($result[text])"
-			);
-		}
-
-		$this->loginCookieJar = $cookie_jar;
-		return $this->loginCookieJar;
-	}
 }

@@ -10,7 +10,7 @@
 
 use Omines\DirectAdmin\Context\AdminContext;
 use Omines\DirectAdmin\Context\UserContext;
-use Omines\DirectAdmin\DirectAdmin;
+use Omines\DirectAdmin\DA_Connection;
 use Omines\DirectAdmin\Objects\Domain;
 use Omines\DirectAdmin\Objects\Users\User;
 
@@ -29,7 +29,7 @@ class UserTest extends \PHPUnit\Framework\TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$master = DirectAdmin::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
+        self::$master = DA_Connection::connectAdmin(DIRECTADMIN_URL, MASTER_ADMIN_USERNAME, MASTER_ADMIN_PASSWORD);
         $ips = self::$master->getIPs();
         self::$user = self::$master->createUser(USER_USERNAME, USER_PASSWORD, TEST_EMAIL, TEST_USER_DOMAIN, $ips[0]);
     }
@@ -102,7 +102,7 @@ class UserTest extends \PHPUnit\Framework\TestCase
 
         // Assert the user is not suspended while of the correct type
         $this->assertFalse($user->isSuspended());
-        $this->assertEquals(DirectAdmin::ACCOUNT_TYPE_USER, $user->getType());
+        $this->assertEquals(DA_Connection::ACCOUNT_TYPE_USER, $user->getType());
 
         // It should not have any usage yet except a single domain
         $this->assertEquals(0, $user->getBandwidthUsage());

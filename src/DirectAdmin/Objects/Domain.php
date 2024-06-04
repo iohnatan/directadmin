@@ -295,7 +295,7 @@ class Domain extends BaseObject
      * @param bool $clearCache Whether to clear the domain cache on success
      * @return array Response from the API
      */
-    public function invokePost($command, $action, $parameters = [], $clearCache = true)
+    public function invoke_api_post($command, $action, $parameters = [], $clearCache = true)
     {
         $response = $this->getContext()->invokeApiPost($command, array_merge([
             'action' => $action,

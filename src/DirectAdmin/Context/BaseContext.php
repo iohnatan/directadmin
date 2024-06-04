@@ -52,6 +52,17 @@ abstract class BaseContext
         return $this->connection->invokeApi('GET', $command, ['query' => $query]);
     }
 
+    /** Invokes the DirectAdmin API via HTTP GET.
+     *
+     * @param string $command DirectAdmin API command to invoke
+     * @param array $query Optional query parameters
+     *
+     * @return array The parsed and validated response
+     */
+    public function invoke_new_api_get( $command, $query = [] ) {
+        return $this->connection->invoke_new_api('GET', $command, ['query' => $query]);
+    }
+
     /** Invokes the DirectAdmin API via HTTP POST.
      *
      * @param string $command DirectAdmin API command to invoke

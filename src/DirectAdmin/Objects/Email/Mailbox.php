@@ -48,7 +48,7 @@ class Mailbox extends MailObject
      */
     public static function create(Domain $domain, $prefix, $password, $quota = null, $sendLimit = null)
     {
-        $domain->invokePost('POP', 'create', [
+        $domain->invoke_api_post('POP', 'create', [
             'user' => $prefix,
             'passwd' => $password,
             'passwd2' => $password,
@@ -73,7 +73,7 @@ class Mailbox extends MailObject
      */
     public function setPassword($newPassword)
     {
-        $this->invokePost('POP', 'modify', [
+        $this->invoke_api_post('POP', 'modify', [
             'user' => $this->getPrefix(),
             'passwd' => $newPassword,
             'passwd2' => $newPassword,

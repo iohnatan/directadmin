@@ -40,7 +40,7 @@ class Subdomain extends DomainObject
      */
     public static function create(Domain $domain, $prefix)
     {
-        $domain->invokePost('SUBDOMAIN', 'create', ['subdomain' => $prefix]);
+        $domain->invoke_api_post('SUBDOMAIN', 'create', ['subdomain' => $prefix]);
         return new self($prefix, $domain);
     }
 
@@ -51,7 +51,7 @@ class Subdomain extends DomainObject
      */
     public function delete($deleteContents = true)
     {
-        $this->invokePost('SUBDOMAIN', 'delete', [
+        $this->invoke_api_post('SUBDOMAIN', 'delete', [
             'select0' => $this->getPrefix(),
             'contents' => ($deleteContents ? 'yes' : 'no'),
         ]);

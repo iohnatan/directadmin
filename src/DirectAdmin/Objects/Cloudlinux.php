@@ -26,8 +26,7 @@ class Cloudlinux extends BaseObject {
 	/** @var string . */
 	public static $request_path = 'CMD_PLUGINS/phpselector/index.raw';
 
-	/**
-	 * Construct the object.
+	/** Construct the object.
 	 *
 	 * @param UserContext $context Context within which the object is valid .
 	 */
@@ -39,14 +38,15 @@ class Cloudlinux extends BaseObject {
 	 *
 	 * @param string $version .
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function setAccountPhpVersion( $version ) {
-		$loginCookieJar = $this->getContext()->getConnection()->getLoginCookieJar();
+		// previously we get the login cookies, but that wasn't necessary.
+		$cookie_jar = new CookieJar();
 
 		$csrfCookie = $this->getCsrfCookie();
 		$csrftoken   = $csrfCookie->getValue();
-		$loginCookieJar->setCookie( $csrfCookie );
+		$cookie_jar->setCookie( $csrfCookie );
 
 		$parameters = [
 			'command'                 => 'cloudlinux-selector',
@@ -58,7 +58,7 @@ class Cloudlinux extends BaseObject {
 
 		// https://server:2222/CMD_PLUGINS/phpselector/index.raw?c=send-request.
 		$query_string = 'c=send-request';
-		return $this->invokeApiPost( $query_string, $parameters, $loginCookieJar );
+		return $this->invokeApiPost( $query_string, $parameters, $cookie_jar );
 	}
 
 	/** Undocumented.
@@ -66,7 +66,7 @@ class Cloudlinux extends BaseObject {
 	 * @param string   $version    .
 	 * @param string[] $extensions .
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function setPhpVersionEnabledExtensions( $version, $extensions ) {
 		$enabled_extensions = [];
@@ -75,11 +75,12 @@ class Cloudlinux extends BaseObject {
 		}
 		$json_enabled_extensions = json_encode( $enabled_extensions );
 
-		$loginCookieJar = $this->getContext()->getConnection()->getLoginCookieJar();
+		// previously we get the login cookies, but that wasn't necessary.
+		$cookie_jar = new CookieJar();
 
 		$csrfCookie = $this->getCsrfCookie();
 		$csrftoken   = $csrfCookie->getValue();
-		$loginCookieJar->setCookie( $csrfCookie );
+		$cookie_jar->setCookie( $csrfCookie );
 
 		$parameters = [
 			'command'             => 'cloudlinux-selector',
@@ -91,7 +92,9 @@ class Cloudlinux extends BaseObject {
 		];
 
 		$query_string = 'c=send-request';
-		return $this->invokeApiPost( $query_string, $parameters, $loginCookieJar );
+		return $this->invokeApiPost(
+			$query_string, $parameters, $cookie_jar
+		);
 	}
 
 	/** Undocumented.
@@ -99,16 +102,17 @@ class Cloudlinux extends BaseObject {
 	 * @param string $version .
 	 * @param string $options .
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function setPhpVersionOptions( $version, $options ) {
 		$json_options = json_encode( $options );
 
-		$loginCookieJar = $this->getContext()->getConnection()->getLoginCookieJar();
+		// previously we get the login cookies, but that wasn't necessary.
+		$cookie_jar = new CookieJar();
 
 		$csrfCookie = $this->getCsrfCookie();
 		$csrftoken   = $csrfCookie->getValue();
-		$loginCookieJar->setCookie( $csrfCookie );
+		$cookie_jar->setCookie( $csrfCookie );
 
 		$parameters = [
 			'command'             => 'cloudlinux-selector',
@@ -120,7 +124,7 @@ class Cloudlinux extends BaseObject {
 		];
 
 		$query_string = 'c=send-request';
-		return $this->invokeApiPost( $query_string, $parameters, $loginCookieJar );
+		return $this->invokeApiPost( $query_string, $parameters, $cookie_jar );
 	}
 
 	/** Get FORGERY PROTECTION TOKEN.

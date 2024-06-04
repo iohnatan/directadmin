@@ -105,7 +105,55 @@ class DA_Connection
 	/** @var CookieJar */
 	protected $loginCookieJar;
 
-	public function getLoginCookieJar() {
+	public function get_login_cookies() {
+		// TODO:cookies are not returned, is a header that comes with the session id.
+		// https://forum.directadmin.com/threads/directadmin-v1-661.70363/page-2
+		// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json#/Session%20control/post_api_login
+		// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json#/Session%20control/post_api_session_login_as_switch.
+
+		if ( ! empty( $loginCookieJar ) ) {
+			return $this->loginCookieJar;
+		}
+
+		$password = $this->getPassword();
+
+		if ( ! $this->isManaged() ) {
+			// doesn't needs to be authenticated, but there's no problem is auth is send.
+			$uri = '/api/login'; // EX /CMD_LOGIN.
+
+			$username = $this->getAuthenticatedUser();
+
+			$options = [ 'json' =>
+				[
+					'username' => $username,
+					'password' => $password,
+				],
+			];
+		} else {
+			// needs to be authenticated.
+			$uri = '/api/session/login-as/switch';
+
+			$username = $this->getUsername();
+
+			$options = [ 'json' =>
+				[
+					'username' => $username
+				],
+			];
+		}
+
+		$out_cookie_jar = new CookieJar();
+
+		// make POST raw request with out cookies.
+		$result = $this->rawRequestWithCookies(
+			$method = 'POST', $uri, $options, $out_cookie_jar
+		);
+
+		$this->loginCookieJar = $out_cookie_jar;
+		return $this->loginCookieJar;
+	}
+
+	public function OLD_getLoginCookieJar() {
 		if ( ! empty( $loginCookieJar ) ) {
 			return $this->loginCookieJar;
 		}
@@ -196,6 +244,23 @@ class DA_Connection
 	public function invokeApi($method, $command, $options = [])
 	{
 		$result = $this->rawRequest($method, '/CMD_API_' . $command, $options);
+		if (!empty($result['error'])) {
+			throw new DirectAdminException("$method to $command failed: $result[details] ($result[text])");
+		}
+		return Conversion::sanitizeArray($result);
+	}
+
+	/** Invokes the DirectAdmin API with specific options.
+	 *
+	 * @param string $method HTTP method to use (ie. GET or POST)
+	 * @param string $command DirectAdmin API command to invoke
+	 * @param array $options Guzzle options to use for the call
+	 * @return array The unvalidated response
+	 * @throws DirectAdminException If anything went wrong on the network level
+	 */
+	public function invoke_new_api($method, $command, $options = [])
+	{
+		$result = $this->rawRequest($method, '/api/' . $command, $options);
 		if (!empty($result['error'])) {
 			throw new DirectAdminException("$method to $command failed: $result[details] ($result[text])");
 		}

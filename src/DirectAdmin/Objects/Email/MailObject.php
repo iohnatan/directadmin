@@ -27,7 +27,7 @@ abstract class MailObject extends DomainObject
      */
     protected function invokeDelete($command, $paramName)
     {
-        $this->invokePost($command, 'delete', [$paramName => $this->getPrefix()]);
+        $this->invoke_api_post($command, 'delete', [$paramName => $this->getPrefix()]);
     }
 
     /**

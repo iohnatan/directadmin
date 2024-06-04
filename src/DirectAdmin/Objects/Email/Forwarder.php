@@ -45,7 +45,7 @@ class Forwarder extends MailObject
      */
     public static function create(Domain $domain, $prefix, $recipients)
     {
-        $domain->invokePost('EMAIL_FORWARDERS', 'create', [
+        $domain->invoke_api_post('EMAIL_FORWARDERS', 'create', [
             'user' => $prefix,
             'email' => is_array($recipients) ? implode(',', $recipients) : $recipients,
         ]);

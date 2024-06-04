@@ -39,9 +39,9 @@ abstract class DomainObject extends BaseObject
      * @param bool $clearCache Whether to clear the domain cache
      * @return array Response from the API
      */
-    protected function invokePost($command, $action, $parameters = [], $clearCache = true)
+    protected function invoke_api_post($command, $action, $parameters = [], $clearCache = true)
     {
-        return $this->domain->invokePost($command, $action, $parameters, $clearCache);
+        return $this->domain->invoke_api_post($command, $action, $parameters, $clearCache);
     }
 
     /**

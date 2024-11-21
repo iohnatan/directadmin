@@ -1,6 +1,6 @@
 {
   "name": "omines/directadmin",
-  "version": "0.1.21",
+  "version": "0.1.26",
   "type": "library",
   "description": "PHP client library to manage DirectAdmin control panel servers.",
   "license": "MIT",

@@ -44,16 +44,16 @@ class Cloudlinux extends BaseObject {
 		// previously we get the login cookies, but that wasn't necessary.
 		$cookie_jar = new CookieJar();
 
-		$csrfCookie = $this->getCsrfCookie();
-		$csrftoken   = $csrfCookie->getValue();
-		$cookie_jar->setCookie( $csrfCookie );
+		$csrf_cookie = $this->get_csrf_cookie();
+		$csrf_token  = $csrf_cookie->getValue();
+		$cookie_jar->setCookie( $csrf_cookie );
 
 		$parameters = [
 			'command'                 => 'cloudlinux-selector',
 			'method'                  => 'set',
 			'params[interpreter]'     => 'php',
 			'params[current-version]' => $version,
-			'csrftoken'               => $csrftoken, // also required.
+			'csrftoken'               => $csrf_token, // also required.
 		];
 
 		// https://server:2222/CMD_PLUGINS/phpselector/index.raw?c=send-request.
@@ -78,9 +78,9 @@ class Cloudlinux extends BaseObject {
 		// previously we get the login cookies, but that wasn't necessary.
 		$cookie_jar = new CookieJar();
 
-		$csrfCookie = $this->getCsrfCookie();
-		$csrftoken   = $csrfCookie->getValue();
-		$cookie_jar->setCookie( $csrfCookie );
+		$csrf_cookie = $this->get_csrf_cookie();
+		$csrf_token  = $csrf_cookie->getValue();
+		$cookie_jar->setCookie( $csrf_cookie );
 
 		$parameters = [
 			'command'             => 'cloudlinux-selector',
@@ -88,7 +88,7 @@ class Cloudlinux extends BaseObject {
 			'params[interpreter]' => 'php',
 			'params[version]'     => $version,
 			'params[extensions]'  => $json_enabled_extensions,
-			'csrftoken'           => $csrftoken,
+			'csrftoken'           => $csrf_token,
 		];
 
 		$query_string = 'c=send-request';
@@ -110,9 +110,9 @@ class Cloudlinux extends BaseObject {
 		// previously we get the login cookies, but that wasn't necessary.
 		$cookie_jar = new CookieJar();
 
-		$csrfCookie = $this->getCsrfCookie();
-		$csrftoken   = $csrfCookie->getValue();
-		$cookie_jar->setCookie( $csrfCookie );
+		$csrf_cookie = $this->get_csrf_cookie();
+		$csrf_token  = $csrf_cookie->getValue();
+		$cookie_jar->setCookie( $csrf_cookie );
 
 		$parameters = [
 			'command'             => 'cloudlinux-selector',
@@ -120,7 +120,7 @@ class Cloudlinux extends BaseObject {
 			'params[interpreter]' => 'php',
 			'params[version]'     => $version,
 			'params[options]'     => $json_options,
-			'csrftoken'           => $csrftoken,
+			'csrftoken'           => $csrf_token,
 		];
 
 		$query_string = 'c=send-request';
@@ -129,9 +129,9 @@ class Cloudlinux extends BaseObject {
 
 	/** Get FORGERY PROTECTION TOKEN.
 	 *
-	 * @return SetCookie
+	 * @return \GuzzleHttp\Cookie\SetCookie
 	 */
-	public function getCsrfCookie() {
+	public function get_csrf_cookie() {
 		// https://server:2222/CMD_PLUGINS/phpselector/index.raw?a=cookie
 		$uri        = static::$request_path . '?a=cookie';
 		$cookie_jar = new CookieJar();

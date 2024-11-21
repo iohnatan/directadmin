@@ -12,6 +12,7 @@ namespace Omines\DirectAdmin;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Exception\TransferException;
 
 use Omines\DirectAdmin\Context\AdminContext;
@@ -106,10 +107,9 @@ class DA_Connection
 	protected $loginCookieJar;
 
 	public function get_login_cookies() {
-		// TODO:cookies are not returned, is a header that comes with the session id.
 		// https://forum.directadmin.com/threads/directadmin-v1-661.70363/page-2
-		// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json#/Session%20control/post_api_login
-		// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json#/Session%20control/post_api_session_login_as_switch.
+		// https://docs.directadmin.com/developer/api/
+		// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json.
 
 		if ( ! empty( $loginCookieJar ) ) {
 			return $this->loginCookieJar;
@@ -117,30 +117,22 @@ class DA_Connection
 
 		$password = $this->getPassword();
 
-		if ( ! $this->isManaged() ) {
-			// doesn't needs to be authenticated, but there's no problem is auth is send.
-			$uri = '/api/login'; // EX /CMD_LOGIN.
+		// doesn't needs to be authenticated, but there's no problem is auth is send.
+		// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json#/Session%20control/post_api_login
+		$uri = '/api/login'; // EX /CMD_LOGIN.
 
+		if ( $this->isManaged() ) {
 			$username = $this->getAuthenticatedUser();
-
-			$options = [ 'json' =>
-				[
-					'username' => $username,
-					'password' => $password,
-				],
-			];
 		} else {
-			// needs to be authenticated.
-			$uri = '/api/session/login-as/switch';
-
 			$username = $this->getUsername();
-
-			$options = [ 'json' =>
-				[
-					'username' => $username
-				],
-			];
 		}
+
+		$options = [ 'json' =>
+			[
+				'username' => $username,
+				'password' => $password,
+			],
+		];
 
 		$out_cookie_jar = new CookieJar();
 
@@ -149,11 +141,43 @@ class DA_Connection
 			$method = 'POST', $uri, $options, $out_cookie_jar
 		);
 
+		// $result = {"sessionID":"FFMKSVTTK5Z7DITM6TWOHV4QI73QFSYRU3EX4RA","loginURL":"https://lv-shared01.dapanel.net:2222/api/login/redirect?key:
+		if ( ! empty( $result['sessionID'] ) ) {
+			throw new DirectAdminException(
+				"$method to '$uri' failed: sessionID property not found"
+			);
+		}
+
+		// #################### impersonate.
+		// use a new client, authenticated with the previous generated session cookie,
+		// so that session is impersonated.
+		if ( $this->isManaged() ) {
+			// needs to be authenticated.
+			// https://petstore.swagger.io/?url=https://demo.directadmin.com:2222/docs/swagger.json#/Session%20control/post_api_session_login_as_switch
+			$uri = '/api/session/login-as/switch';
+
+			$username = $this->getUsername();
+
+			$_options = [
+				'cookies' => $out_cookie_jar,
+				'json'    => [ 'username' => $username ],
+			];
+
+			$_client = new Client( [ 'base_uri' => $this->baseUrl ] );
+			$_result = $_client->request( $method = 'POST', $uri, $_options );
+
+			if ( $_result->getStatusCode() !== 204 ) {
+				throw new DirectAdminException(
+					"We could not impersonate $username, $method to '$uri' failed: wrong response status."
+				);
+			}
+		}
+
 		$this->loginCookieJar = $out_cookie_jar;
 		return $this->loginCookieJar;
 	}
 
-	public function OLD_getLoginCookieJar() {
+	public function OLD_get_Login_cookies() {
 		if ( ! empty( $loginCookieJar ) ) {
 			return $this->loginCookieJar;
 		}
@@ -245,7 +269,7 @@ class DA_Connection
 	{
 		$result = $this->rawRequest($method, '/CMD_API_' . $command, $options);
 		if (!empty($result['error'])) {
-			throw new DirectAdminException("$method to $command failed: $result[details] ($result[text])");
+			throw new DirectAdminException("$method to $command failed: {$result[details]} ({$result[text]})");
 		}
 		return Conversion::sanitizeArray($result);
 	}
@@ -293,7 +317,10 @@ class DA_Connection
 	 * @return array
 	 */
 	public function rawRequestWithCookies(
-		string $method, string $uri, array $options, &$cookie_jar = null
+		string $method,
+		string $uri,
+		array $options,
+		&$cookie_jar = null
 	) {
 		// https://docs.guzzlephp.org/en/stable/request-options.html#cookies.
 		$options['cookies'] = $cookie_jar;
@@ -306,11 +333,16 @@ class DA_Connection
 	 * @param string $uri     URI string.
 	 * @param array  $options Request options to apply. See \GuzzleHttp\RequestOptions.
 	 *                        https://docs.guzzlephp.org/en/stable/request-options.html
+	 * @param array  $headers [Optional]. Out response headers.
 	 *
 	 * @return array
 	 */
-	public function rawRequest( string $method, string $uri, array $options )
-	{
+	public function rawRequest(
+		string $method,
+		string $uri,
+		array $options,
+		array &$headers = null
+	) {
 		try {
 			$response = $this->connection->request( $method, $uri, $options );
 
@@ -325,6 +357,8 @@ class DA_Connection
 						$method, $uri, strip_tags( $body ) )
 					);
 			}
+
+			$headers = $response->getHeaders();
 
 			return Conversion::responseToArray($body);
 		} catch (TransferException $exception) {

@@ -2,7 +2,18 @@
 	"files.eol": "\n",
 
 	"intelephense.environment.includePaths": [
-        "D:\\CloudSync\\0-Dev\\Wordpress\\Plugins-Jona\\wp-iohna-api\\vendor\\guzzlehttp",
+        "D:\\CloudSync\\0-Dev\\Wordpress\\plugins-jona\\wp-iohna-api\\vendor\\guzzlehttp",
     ],
     "php.suggest.basic": false,
+    "workbench.colorCustomizations": {
+        "[Default Dark+]": {
+            "sideBar.background": "#191919",
+            "tab.inactiveBackground": "#191919",
+            "tab.activeBackground": "#111111",
+            "editor.background": "#111111"
+        },
+        "activityBar.background": "#46203A",
+        "titleBar.activeBackground": "#622D52",
+        "titleBar.activeForeground": "#FCF9FB"
+    },
 }

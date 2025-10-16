@@ -1,5 +1,5 @@
 {
-  "name": "omines/directadmin",
+  "name": "iohna/directadmin",
   "version": "0.1.26",
   "type": "library",
   "description": "PHP client library to manage DirectAdmin control panel servers.",
